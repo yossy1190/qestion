@@ -49,7 +49,7 @@ def main():
     driver.find_element(by=By.CSS_SELECTOR,value=("#change_price_max")).send_keys(to_yes)
     driver.find_element(by=By.CSS_SELECTOR,value=("#submit_btn")).click()
     time.sleep(1)
-    # 検索結果が０件だったら、なしと記入したい。
+    #動画撮影後、 検索結果が０件だったら、column1に、なしと記入したい。
     trs = driver.find_elements(by=By.CSS_SELECTOR, value="table.data_table > tbody > tr") 
     for r,tr in enumerate(trs):
         tds=tr.find_elements(by=By.CSS_SELECTOR,value="td")
