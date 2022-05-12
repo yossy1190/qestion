@@ -1,4 +1,3 @@
-from numpy import full
 from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
@@ -9,8 +8,6 @@ import datetime
 
 dt_now=datetime.datetime.now()
 dtnf=dt_now.strftime('%Y%m%d_%H%M%S')
-
-
 
 def set_driver(hidden_chrome: bool=False):
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36"
@@ -32,23 +29,47 @@ def main():
     wb=openpyxl.load_workbook("ツール読込用データ.xlsx")
     wsinfo=wb['検索情報']
     wsresult=wb["検索結果"]
+    ws1=wb["sheet1"]
+    
+    wb.remove(wsresult)
+    wb.create_sheet(title="検索結果")
+    wsresult=wb["検索結果"]
+
+
+
+    headers_list=['分量','コード','銘柄名','市場','業種','終値','前日比','騰落率']
+
+    for row in ws1.iter_rows(min_row=2, min_col=1, max_row=1000, max_col=3):
+        for cell in row:
+            cell.value = None
+        
+    for c,header in enumerate(headers_list):
+        wsresult.cell(row=1,column=c+1).value=header
+    
+    wb.move_sheet(ws1,offset=len(wb.sheetnames))
     
     # selenium起動
     driver=set_driver()
-    print("実行中です。しばらくお待ちください")
+    print("実行中です。起動までしばらくお待ちください")
     url="https://www.traders.co.jp/market_jp/screening"
     driver.get(url)
+    
+    '''
     # 検索結果に無駄な情報が入っていたらクリアする。
-    wsresult.delete_rows(2,10000)
+    wsresult.delete_rows(2,4000)
+    
+    wssheet1.delete_rows(2,1000)
+    '''
     
     full_cell=4
     for i in range(4,51):
         try:
             if wsinfo.cell(i,11).value:
                 full_cell+=1
+                print(f"{full_cell-4}件目データ格納あり")
         except:
             pass
-    print(f"検索列数は{full_cell-4}件です")
+    print(f"検索列数は{full_cell-4}件です。検索開始します。")
     
     # 検索値を読み込み
     for cnt in range(4,full_cell+1):
@@ -132,30 +153,6 @@ def main():
             except:
                 print(f"{cnt-3}件目以降データなし")
     
-    wb.save("出力結果{}.xlsx".format(dtnf))
+    wb.save("ツール読込用データ.xlsx")
 
 main()
-'''
-dt_now=datetime.datetime.now()
-dtnf=dt_now.strftime('%Y%m%d_%H:%M:%S')
-'''
-'''
-elif wsinfo.cell(cnt,11).value==wsresult.cell(wsresult.max_row,1).value:
-    for c,td in enumerate(tds):
-        wsresult.cell(row=max_row+1,column=c+2).value=td.text                
-    wsresult.cell(row=max_row+1,column=1).value=amount
-'''    
-'''
-# ２回目は、１回目の最終行から、１行開けて入力させたい
-else:
-    for c,td in enumerate(tds):
-        # 4，11は、数値が入る。既にresultrowに入っている数値と比較して、同じ場合は、maxrowの一つ下に入れればよい。
-        if wsinfo.cell(cnt,11).value==wsresult.cell(wsresult.max_row,1).value:
-            wsresult.cell(row=max_row+1,column=c+2).value=td.text                
-            # wsresult.cell(row=r+1,column=c+2).value=td.text
-            wsresult.cell(row=max_row+1,column=1).value=amount
-        else:
-            wsresult.cell(row=max_row+2,column=c+2).value=td.text                
-        # wsresult.cell(row=r+1,column=c+2).value=td.text
-            wsresult.cell(row=max_row+2,column=1).value=amount
-'''                
